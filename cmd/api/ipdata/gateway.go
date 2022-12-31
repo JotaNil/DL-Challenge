@@ -3,12 +3,11 @@ package ipdata
 import (
 	"context"
 	"fmt"
-	"sort"
 )
 
 type Gateway interface {
 	SelectTopHundred(ctx context.Context) ([]IpData, error)
-	GetIspIpsByCountryCode(ctx context.Context, countryCode string) ([]IspIpCount, error)
+	GetIspIpsByCountryCode(ctx context.Context, countryCode string, limit int) ([]IspIpCount, error)
 	GetTopISPFromSwitzerland(ctx context.Context) ([]IspIpCount, error)
 	GetIpCountByCountyName(ctx context.Context, countryName string) (int64, error)
 	GetDataFromIP(ctx context.Context, ip string) (IpData, error)
@@ -31,7 +30,7 @@ func (g gateway) SelectTopHundred(ctx context.Context) ([]IpData, error) {
 	return data, nil
 }
 func (g gateway) GetTopISPFromSwitzerland(ctx context.Context) ([]IspIpCount, error) {
-	sortedISPs, err := g.GetIspIpsByCountryCode(ctx, CountryCodeSwitzerland)
+	sortedISPs, err := g.GetIspIpsByCountryCode(ctx, CountryCodeSwitzerland, 10)
 	if err != nil {
 		err = fmt.Errorf("error getting Ips Ip count.  %w", err)
 		return []IspIpCount{}, err
@@ -40,26 +39,13 @@ func (g gateway) GetTopISPFromSwitzerland(ctx context.Context) ([]IspIpCount, er
 	return sortedISPs[:10], err
 }
 
-func (g gateway) GetIspIpsByCountryCode(ctx context.Context, countryCode string) ([]IspIpCount, error) {
-	countryIPData, err := g.dao.Get(ctx, &IpData{CountryCode: countryCode})
+func (g gateway) GetIspIpsByCountryCode(ctx context.Context, countryCode string, limit int) ([]IspIpCount, error) {
+	countryIPData, err := g.dao.GetTopIspByCountryCode(ctx, countryCode, limit)
 	if err != nil {
 		return []IspIpCount{}, err
 	}
 
-	countMap := make(map[string]int64)
-	for i := range countryIPData {
-		countMap[countryIPData[i].ISP] = countMap[countryIPData[i].ISP] + countryIPData[i].GetIPCount()
-	}
-
-	sortedISPs := make([]IspIpCount, 0)
-	for isp, ipcount := range countMap {
-		sortedISPs = append(sortedISPs, IspIpCount{Isp: isp, IpCount: ipcount})
-	}
-	sort.Slice(sortedISPs, func(i, j int) bool {
-		return sortedISPs[i].IpCount > sortedISPs[j].IpCount
-	})
-
-	return sortedISPs, nil
+	return countryIPData, nil
 }
 
 func (g gateway) GetIpCountByCountyName(ctx context.Context, countryName string) (int64, error) {

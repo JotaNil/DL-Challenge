@@ -109,7 +109,7 @@ func (h Handler) SelectTopISPByCountryCode(w http.ResponseWriter, r *http.Reques
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	topISPs, err := h.gtw.GetIspIpsByCountryCode(ctx, countryCode)
+	topISPs, err := h.gtw.GetIspIpsByCountryCode(ctx, countryCode, 100)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
