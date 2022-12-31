@@ -14,8 +14,9 @@ const (
 	user   = "postgres"
 	dbname = "ipv4-proxy-dreamlab"
 
-	selectQuery     = "SELECT ip_from,ip_to,country_code,country_name,isp FROM proxydata.ip2location WHERE 1=1"
-	selectByIPQuery = "SELECT ip_from,ip_to,country_code,country_name,isp,region_name,city_name,proxy_type FROM proxydata.ip2location WHERE $1 BETWEEN ip_from AND ip_to"
+	selectQuery           = "SELECT ip_from,ip_to,country_code,country_name,isp FROM proxydata.ip2location WHERE 1=1"
+	getIPsPerCountryQuery = "SELECT SUM(ip_to - ip_from + 1) FROM proxydata.ip2location WHERE country_name = $1 "
+	selectByIPQuery       = "SELECT ip_from,ip_to,country_code,country_name,isp,region_name,city_name,proxy_type FROM proxydata.ip2location WHERE $1 BETWEEN ip_from AND ip_to"
 )
 
 var password = os.Getenv("bdpassword")
@@ -23,6 +24,7 @@ var password = os.Getenv("bdpassword")
 type Dao interface {
 	Get(ctx context.Context, filters *IpData) ([]IpData, error)
 	GetByIp(ctx context.Context, ip int64) (IpData, error)
+	GetIpSumByCountry(ctx context.Context, countryName string) (int64, error)
 }
 
 func NewDao() Dao {
@@ -71,10 +73,10 @@ func (d dao) Get(ctx context.Context, filters *IpData) ([]IpData, error) {
 }
 
 func (d dao) GetByIp(ctx context.Context, ip int64) (IpData, error) {
-	rows := d.db.QueryRow(selectByIPQuery, ip)
+	row := d.db.QueryRow(selectByIPQuery, ip)
 
 	ipData := IpData{}
-	err := rows.Scan(&ipData.IpFrom,
+	err := row.Scan(&ipData.IpFrom,
 		&ipData.IpTo,
 		&ipData.CountryCode,
 		&ipData.CountyName,
@@ -86,13 +88,31 @@ func (d dao) GetByIp(ctx context.Context, ip int64) (IpData, error) {
 		return IpData{}, err
 	}
 
-	err = rows.Err()
+	err = row.Err()
 	if err != nil {
 		err = fmt.Errorf("error with get query while scanning rows.  %w", err)
 		return IpData{}, err
 	}
 
 	return ipData, nil
+}
+
+func (d dao) GetIpSumByCountry(ctx context.Context, countryName string) (int64, error) {
+	row := d.db.QueryRow(getIPsPerCountryQuery, countryName)
+
+	var ipSum int64
+	err := row.Scan(&ipSum)
+	if err != nil {
+		return 0, err
+	}
+
+	err = row.Err()
+	if err != nil {
+		err = fmt.Errorf("error with get query while scanning rows.  %w", err)
+		return 0, err
+	}
+
+	return ipSum, nil
 }
 
 func processFilters(query string, filters *IpData) string {

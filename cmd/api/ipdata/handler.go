@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 )
 
 type Handler struct {
@@ -46,6 +47,7 @@ func (h Handler) GetTopISPsFromSwitzerland(w http.ResponseWriter, r *http.Reques
 
 func (h Handler) GetIPCountByCountryName(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	timer := time.Now()
 	countyName, err := common.GetParamFromRequest(r, "country_name")
 	if err != nil {
 		err = fmt.Errorf("param: country_name %w", err)
@@ -60,17 +62,20 @@ func (h Handler) GetIPCountByCountryName(w http.ResponseWriter, r *http.Request)
 
 	w.WriteHeader(http.StatusOK)
 	response, err := json.Marshal(struct {
-		CountryName string `json:"country_name"`
-		IpCount     int64  `json:"ip_count"`
-	}{countyName, ipCount})
+		CountryName        string `json:"country_name"`
+		IpCount            int64  `json:"ip_count"`
+		ElapsedTimeInMilis int64  `json:"elapsed_time_in_milis"`
+	}{countyName, ipCount, time.Now().Sub(timer).Milliseconds()})
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	w.Write(response)
 
 }
+
 func (h Handler) GetDataFromIP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

@@ -63,18 +63,14 @@ func (g gateway) GetIspIpsByCountryCode(ctx context.Context, countryCode string)
 }
 
 func (g gateway) GetIpCountByCountyName(ctx context.Context, countryName string) (int64, error) {
-	countryIPData, err := g.dao.Get(ctx, &IpData{CountyName: countryName})
+	countryIPCount, err := g.dao.GetIpSumByCountry(ctx, countryName)
 	if err != nil {
 		return 0, err
 	}
 
-	var countryIPCount int64
-	for i := range countryIPData {
-		countryIPCount = countryIPCount + countryIPData[i].GetIPCount()
-	}
-
 	return countryIPCount, nil
 }
+
 func (g gateway) GetDataFromIP(ctx context.Context, ip string) (IpData, error) {
 	ipData, err := g.dao.GetByIp(ctx, stringIPToDecimal(ip))
 	if err != nil {
