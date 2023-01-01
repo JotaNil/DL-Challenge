@@ -16,7 +16,7 @@ type IpData struct {
 	IpTo        int64    `json:"ip_to,omitempty"`
 	ProxyType   string   `json:"proxy_type,omitempty"`
 	CountryCode string   `json:"country_code,omitempty"`
-	CountyName  string   `json:"county_name,omitempty"`
+	CountryName string   `json:"county_name,omitempty"`
 	RegionName  string   `json:"region_name,omitempty"`
 	CityName    string   `json:"city_name,omitempty"`
 	ISP         string   `json:"isp,omitempty"`
@@ -55,14 +55,12 @@ func stringIPToDecimal(ip string) int64 {
 	return decimalValue
 }
 
-var ipConverterWeights = make(map[int]int64)
+var ipConverterWeights = buildIPConverterWeights()
 
-func buildIPConverterWeights() {
+func buildIPConverterWeights() map[int]int64 {
+	ipConvertedWeights := make(map[int]int64)
 	for i := 0; i <= 3; i++ {
-		ipConverterWeights[i] = int64(math.Pow(256, float64(i)))
+		ipConvertedWeights[i] = int64(math.Pow(256, float64(i)))
 	}
-}
-
-func init() {
-	buildIPConverterWeights()
+	return ipConvertedWeights
 }

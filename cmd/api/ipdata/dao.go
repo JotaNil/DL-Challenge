@@ -5,22 +5,16 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/lib/pq"
-	"os"
 )
 
 const (
-	host   = "localhost"
-	port   = 5432
-	user   = "postgres"
-	dbname = "ipv4-proxy-dreamlab"
-
 	selectQuery            = "SELECT ip_from,ip_to,country_code,country_name,isp FROM proxydata.ip2location WHERE 1=1"
 	getIPsPerCountryQuery  = "SELECT SUM(ip_to - ip_from + 1) FROM proxydata.ip2location WHERE country_name = $1 "
 	getTopIspByCountryCode = "SELECT isp, sum(ip_to-ip_from+1) as difference FROM proxydata.ip2location WHERE country_code = $1 GROUP BY isp order by difference DESC LIMIT $2"
 	selectByIPQuery        = "SELECT ip_from,ip_to,country_code,country_name,isp,region_name,city_name,proxy_type FROM proxydata.ip2location WHERE $1 BETWEEN ip_from AND ip_to"
 )
 
-var password = os.Getenv("bdpassword")
+//go:generate mockgen -destination=mock_dao.go -package=ipdata -source=dao.go Dao
 
 type Dao interface {
 	Get(ctx context.Context, filters *IpData) ([]IpData, error)
@@ -29,21 +23,15 @@ type Dao interface {
 	GetTopIspByCountryCode(ctx context.Context, countryCode string, limit int) ([]IspIpCount, error)
 }
 
-func NewDao() Dao {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
-	db, err := sql.Open("postgres", psqlInfo)
-	if err != nil {
-		panic(err)
-	}
-	return dao{db: db}
+func NewDao(dbConnection *sql.DB) Dao {
+	return dao{db: dbConnection}
 }
 
 type dao struct {
 	db *sql.DB
 }
 
+// Get uses IpData to filter by IpData.ISP, IpData.CountryName and IpData.CountryCode
 func (d dao) Get(ctx context.Context, filters *IpData) ([]IpData, error) {
 	rows, err := d.db.Query(processFilters(selectQuery, filters))
 	if err != nil {
@@ -58,7 +46,7 @@ func (d dao) Get(ctx context.Context, filters *IpData) ([]IpData, error) {
 		err = rows.Scan(&data.IpFrom,
 			&data.IpTo,
 			&data.CountryCode,
-			&data.CountyName,
+			&data.CountryName,
 			&data.ISP)
 		if err != nil {
 			return ipData, err
@@ -74,8 +62,9 @@ func (d dao) Get(ctx context.Context, filters *IpData) ([]IpData, error) {
 	return ipData, nil
 }
 
+// GetTopIspByCountryCode get the top (limit) ISPs from the given countryCode
 func (d dao) GetTopIspByCountryCode(ctx context.Context, countryCode string, limit int) ([]IspIpCount, error) {
-	rows, err := d.db.Query(getTopIspByCountryCode, countryCode, limit)
+	rows, err := d.db.QueryContext(ctx, getTopIspByCountryCode, countryCode, limit)
 	if err != nil {
 		err = fmt.Errorf("error with get query with DB.  %w", err)
 		return []IspIpCount{}, err
@@ -100,14 +89,15 @@ func (d dao) GetTopIspByCountryCode(ctx context.Context, countryCode string, lim
 	return ipData, nil
 }
 
+// GetByIp gets all the data of the given ip in decimal format
 func (d dao) GetByIp(ctx context.Context, ip int64) (IpData, error) {
-	row := d.db.QueryRow(selectByIPQuery, ip)
+	row := d.db.QueryRowContext(ctx, selectByIPQuery, ip)
 
 	ipData := IpData{}
 	err := row.Scan(&ipData.IpFrom,
 		&ipData.IpTo,
 		&ipData.CountryCode,
-		&ipData.CountyName,
+		&ipData.CountryName,
 		&ipData.ISP,
 		&ipData.RegionName,
 		&ipData.CityName,
@@ -125,8 +115,9 @@ func (d dao) GetByIp(ctx context.Context, ip int64) (IpData, error) {
 	return ipData, nil
 }
 
+// GetIpSumByCountry gets the number of Ips of the given countryName
 func (d dao) GetIpSumByCountry(ctx context.Context, countryName string) (int64, error) {
-	row := d.db.QueryRow(getIPsPerCountryQuery, countryName)
+	row := d.db.QueryRowContext(ctx, getIPsPerCountryQuery, countryName)
 
 	var ipSum int64
 	err := row.Scan(&ipSum)
@@ -151,8 +142,8 @@ func processFilters(query string, filters *IpData) string {
 		if filters.CountryCode != "" {
 			query = query + " AND country_code = '" + filters.CountryCode + "'"
 		}
-		if filters.CountyName != "" {
-			query = query + " AND country_name = '" + filters.CountyName + "'"
+		if filters.CountryName != "" {
+			query = query + " AND country_name = '" + filters.CountryName + "'"
 		}
 	}
 

@@ -8,29 +8,20 @@ import (
 	"time"
 )
 
-type Handler struct {
+type Handler interface {
+	GetTopISPsFromSwitzerland(w http.ResponseWriter, r *http.Request) //
+	GetIPCountByCountryName(w http.ResponseWriter, r *http.Request)   //
+	GetDataFromIP(w http.ResponseWriter, r *http.Request)             //
+}
+type handler struct {
 	gtw Gateway
 }
 
 func NewHandler(gtw Gateway) Handler {
-	return Handler{gtw: gtw}
-}
-func (h Handler) GetData(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	topHundred, err := h.gtw.SelectTopHundred(ctx)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-
-	w.WriteHeader(http.StatusOK)
-	response, err := json.Marshal(topHundred)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-	w.Write(response)
+	return handler{gtw: gtw}
 }
 
-func (h Handler) GetTopISPsFromSwitzerland(w http.ResponseWriter, r *http.Request) {
+func (h handler) GetTopISPsFromSwitzerland(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	topTenCH, err := h.gtw.GetTopISPFromSwitzerland(ctx)
 	if err != nil {
@@ -45,7 +36,7 @@ func (h Handler) GetTopISPsFromSwitzerland(w http.ResponseWriter, r *http.Reques
 	w.Write(response)
 }
 
-func (h Handler) GetIPCountByCountryName(w http.ResponseWriter, r *http.Request) {
+func (h handler) GetIPCountByCountryName(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	timer := time.Now()
 	countyName, err := common.GetParamFromRequest(r, "country_name")
@@ -76,7 +67,7 @@ func (h Handler) GetIPCountByCountryName(w http.ResponseWriter, r *http.Request)
 
 }
 
-func (h Handler) GetDataFromIP(w http.ResponseWriter, r *http.Request) {
+func (h handler) GetDataFromIP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	ip, err := common.GetParamFromRequest(r, "ip")
@@ -100,7 +91,8 @@ func (h Handler) GetDataFromIP(w http.ResponseWriter, r *http.Request) {
 
 	w.Write(response)
 }
-func (h Handler) SelectTopISPByCountryCode(w http.ResponseWriter, r *http.Request) {
+
+func (h handler) SelectTopISPByCountryCode(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	countryCode, err := common.GetParamFromRequest(r, "country_code")
