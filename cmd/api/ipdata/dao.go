@@ -10,9 +10,11 @@ import (
 )
 
 const (
-	getIPsPerCountryQuery  = "SELECT SUM(ip_to - ip_from + 1) FROM proxydata.ip2location WHERE country_name = $1 "
-	getTopIspByCountryCode = "SELECT isp, sum(ip_to-ip_from+1) as difference FROM proxydata.ip2location WHERE country_code = $1 GROUP BY isp order by difference DESC LIMIT $2"
-	selectByIPQuery        = "SELECT ip_from,ip_to,country_code,country_name,isp,region_name,city_name,proxy_type FROM proxydata.ip2location WHERE $1 BETWEEN ip_from AND ip_to"
+	ipdataSchemaTableName = "proxydata.ip2location"
+
+	getIPsPerCountryQuery  = "SELECT SUM(ip_to - ip_from + 1) FROM " + ipdataSchemaTableName + " WHERE country_name = $1 "
+	getTopIspByCountryCode = "SELECT isp, sum(ip_to-ip_from+1) as difference FROM " + ipdataSchemaTableName + " WHERE country_code = $1 GROUP BY isp order by difference DESC LIMIT $2"
+	selectByIPQuery        = "SELECT ip_from,ip_to,country_code,country_name,isp,region_name,city_name,proxy_type FROM " + ipdataSchemaTableName + " WHERE $1 BETWEEN ip_from AND ip_to"
 )
 
 //go:generate mockgen -destination=mock_dao.go -package=ipdata -source=dao.go Dao
