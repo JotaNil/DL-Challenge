@@ -8,6 +8,10 @@ import (
 	"time"
 )
 
+const (
+	appPort = "8000"
+)
+
 type Application struct {
 	server *http.Server
 }
@@ -29,11 +33,11 @@ func (d *Application) LoadAndRoute() {
 
 	r.HandleFunc("/ipdata/count/ip/{country_name}", ipDataHandler.GetIPCountByCountryName).Methods("GET")
 	r.HandleFunc("/ipdata/{ip}", ipDataHandler.GetDataFromIP).Methods("GET")
-	r.HandleFunc("/ipdata/top10/switzerland", ipDataHandler.GetTopISPsFromSwitzerland).Methods("GET")
+	r.HandleFunc("/ipdata/top10/Switzerland", ipDataHandler.GetTopISPsFromSwitzerland).Methods("GET")
 
 	srv := &http.Server{
 		Handler:      r,
-		Addr:         "127.0.0.1:8000",
+		Addr:         "127.0.0.1:" + appPort,
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
