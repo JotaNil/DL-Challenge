@@ -8,19 +8,19 @@ import (
 	"time"
 )
 
-type application struct {
+type Application struct {
 	server *http.Server
 }
 
 // LoadAndRoute loads all the dependencies, prepare handlers and initialize routes
-func (d *application) LoadAndRoute() {
+func (d *Application) LoadAndRoute() {
 	// dataStorage
 	ipv4ProxyDB, _ := services.ConnectToSQLDB(services.Ipv4ProxyDB)
 
 	// ipData
-	ipdataDao := ipdata.NewDao(ipv4ProxyDB)
-	ipdataGateway := ipdata.NewGateway(ipdataDao)
-	ipDataHandler := ipdata.NewHandler(ipdataGateway)
+	ipDataDao := ipdata.NewDao(ipv4ProxyDB)
+	ipDataGateway := ipdata.NewGateway(ipDataDao)
+	ipDataHandler := ipdata.NewHandler(ipDataGateway)
 
 	// Routes --------------------------
 

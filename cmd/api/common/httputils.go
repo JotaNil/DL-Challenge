@@ -10,7 +10,7 @@ import (
 func GetParamFromRequest(r *http.Request, paramName string) (string, error) {
 	params := mux.Vars(r)
 	param, found := params[paramName]
-	if !found {
+	if !found || param == "" {
 		return "", ParamNotFoundError
 	}
 

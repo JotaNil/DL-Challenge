@@ -49,19 +49,19 @@ func (mr *MockGatewayMockRecorder) GetDataFromIP(ctx, ip interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDataFromIP", reflect.TypeOf((*MockGateway)(nil).GetDataFromIP), ctx, ip)
 }
 
-// GetIpCountByCountyName mocks base method.
-func (m *MockGateway) GetIpCountByCountyName(ctx context.Context, countryName string) (int64, error) {
+// GetIpCountByCountryName mocks base method.
+func (m *MockGateway) GetIpCountByCountryName(ctx context.Context, countryName string) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetIpCountByCountyName", ctx, countryName)
+	ret := m.ctrl.Call(m, "GetIpCountByCountryName", ctx, countryName)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetIpCountByCountyName indicates an expected call of GetIpCountByCountyName.
-func (mr *MockGatewayMockRecorder) GetIpCountByCountyName(ctx, countryName interface{}) *gomock.Call {
+// GetIpCountByCountryName indicates an expected call of GetIpCountByCountryName.
+func (mr *MockGatewayMockRecorder) GetIpCountByCountryName(ctx, countryName interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIpCountByCountyName", reflect.TypeOf((*MockGateway)(nil).GetIpCountByCountyName), ctx, countryName)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIpCountByCountryName", reflect.TypeOf((*MockGateway)(nil).GetIpCountByCountryName), ctx, countryName)
 }
 
 // GetIspIpsByCountryCode mocks base method.

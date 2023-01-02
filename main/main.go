@@ -5,7 +5,7 @@ import (
 )
 
 func main() {
-	app := application{}
+	app := Application{}
 	app.LoadAndRoute()
 
 	log.Fatal(app.server.ListenAndServe())

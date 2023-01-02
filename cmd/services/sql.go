@@ -8,8 +8,10 @@ import (
 )
 
 const (
-	// ipv4-proxy-dreamlab db Data
+	// Ipv4ProxyDB ipv4-proxy-dreamlab DB
 	Ipv4ProxyDB = "ipv4ProxyDB"
+	// MockDB for unit test usage
+	MockDB = "mock"
 
 	ipv4ProxyHost   = "localhost"
 	ipv4ProxyPort   = 5432
