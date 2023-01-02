@@ -1,11 +1,11 @@
 # DL-Challenge
 
-## Enviroment setup
+## Environment setup
 For the API to run the following configurations must be made for the correct connection to the DataBase:
-* Be sure to have a postgreSQL or a SQL DB up with the [IP2Proxy data](https://lite.ip2location.com/database/px7-ip-proxytype-country-region-city-isp-domain-usagetype-asn) already imported.
-* Change the connection info `(host,port,user,dbName)` in `./cmd/services/sql.go` to match yours. Default data its ready for a default postgreSQL instalation.
+* Be sure to have a postgresSQL or a SQL DB up with the [IP2Proxy data](https://lite.ip2location.com/database/px7-ip-proxytype-country-region-city-isp-domain-usagetype-asn) already imported.
+* Change the connection info `(host,port,user,dbName)` in `./cmd/services/sql.go` to match yours. Default data it's ready for a default postgresSQL installation.
 * If needed, change `ipdataSchemaTableName` in `./cmd/api/ipdata/dao.go` to match your schema and table name. The default used is: `proxydata.ip2location`.
-* Set the enviroment variable `DL_CHALLENGE_DBPASS` with the password of the user defined in the connection info.
+* Set the environment variable `DL_CHALLENGE_DBPASS` with the password of the user defined in the connection info.
 > if there is any error with the configuration the error message should be enough to correct them. This error will be given on the API startup, it will be present in a panic.
 
 ## Running the project
@@ -57,7 +57,7 @@ cURL:
 > curl 127.0.0.1:8000/ipdata/top10/switzerland -H "Accept: application/json"
 
 ### Get data by IP
-This endpoints returns all the data available in the database of the given ip.
+This endpoint returns all the data available in the database of the given ip.
 
 Url:
 > /ipdata/{ip}
@@ -86,5 +86,5 @@ cURL:
 ## Error handling
 
 All endpoints will return the appropriate status code for the request. 
-In the case that the response has a different than 200 status code, a string must be unrmashaled to parse the error that is returned in plain txt as the http go pkg marshals it.
+In the case that the response has a different from 200 status code, a string must be unmarshalled to parse the error that is returned in plain txt as the http go pkg marshals it.
 
